@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	<!-- 扫描组件 -->
+	<context:component-scan base-package="com.bdqn"/>
+	<!-- 引入数据库配置文件 -->
+	<context:property-placeholder
+		location="classpath:database.properties" />
+
+	<!-- 配置数据源 -->
+	<bean id="dataSource"
+		class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${driver}" />
+		<property name="url" value="${url}" />
+		<property name="username" value="${user}" />
+		<property name="password" value="${password}" />
+		<property name="initialSize" value="${initialSize}" />
+		<property name="maxActive" value="${maxActive}" />
+		<property name="maxIdle" value="${maxIdle}" />
+		<property name="minIdle" value="${minIdle}" />
+		<property name="maxWait" value="${maxWait}" />
+		<property name="removeAbandonedTimeout"
+			value="${removeAbandonedTimeout}" />
+		<property name="removeAbandoned" value="${removeAbandoned}" />
+		<!-- sql 心跳 -->
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<property name="validationQuery" value="select 1" />
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<property name="numTestsPerEvictionRun" value="${maxActive}" />
+	</bean>
+
+	<!-- 配置MyBatis的sqlSessionFactory -->
+	<bean id="sqlSessionFactory"
+		class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="com.bdqn.pojo" />
+		<property name="configLocation"
+			value="classpath:mybatis-config.xml"></property>
+	</bean>
+
+	<!-- 配置事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- 配置事务的方法 -->
+	<!-- 若事务管理器的id值就是“transactionManager” 则可以省略 -->
+	<!-- <tx:advice id="txAdvice" transaction-manager="dataSourceTransactionManager"> -->
+
+	<!-- 理解方式： advice:翻译过来是建议 给谁提，提什么建议 -->
+	<tx:advice id="txAdvice">
+		<tx:attributes>
+			<tx:method name="get*" propagation="REQUIRED"
+				isolation="DEFAULT" read-only="true" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="del*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 配置切面 -->
+	<aop:config>
+		<!-- 切入点 -->
+		<aop:pointcut
+			expression="execution(* com.bdqn.service.*.*(..))" id="pointcut" />
+		<!-- 理解方式：advisor翻译过来是提建议的人 提建议的人，在哪提：pointcut-ref="pointcut" 提什么建议：advice-ref="txAdvice" -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut" />
+	</aop:config>
+	<!-- 扫描Mapper映射文件 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.bdqn.mapper" />
+	</bean>
+
+</beans>

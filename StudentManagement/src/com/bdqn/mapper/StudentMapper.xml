@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bdqn.mapper.StudentMapper">
+    <select id="selAll" resultType="StudentInfo">
+        SELECT * FROM studentInfo;
+    </select>
+    <select id="selBeen" parameterType="integer" resultType="StudentInfo">
+        SELECT * FROM studentInfo WHERE sId=#{sId};
+    </select>
+    <insert id="add" parameterType="StudentInfo">
+        INSERT INTO studentInfo VALUES(0,#{sName},#{sGender},#{sAge},#{sAddress},#{sEmail});
+    </insert>
+    <update id="upBeen" parameterType="StudentInfo">
+        UPDATE studentInfo SET sName=#{sName},sGender=#{sGender},sAge=#{sAge},sAddress=#{sAddress},sEmail=#{sEmail}
+        WHERE sId=#{sId};
+    </update>
+    <delete id="del" parameterType="integer">
+        DELETE FROM studentInfo WHERE sId=#{id};
+    </delete>
+</mapper>
